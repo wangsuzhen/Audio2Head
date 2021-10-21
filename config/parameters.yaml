@@ -1,0 +1,8 @@
+block_expansion: 32
+estimate_jacobian: true
+max_features: 512
+num_blocks: 5
+num_kp: 10
+num_w: 2
+seq: true
+seq_len: 64
