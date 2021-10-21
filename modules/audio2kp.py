@@ -1,11 +1,10 @@
 from torch import nn
 import torch
-import numpy as np
 import torch.nn.functional as F
 from modules.util import AntiAliasInterpolation2d
-from modules.util import Hourglass3D,Hourglass,Hourglass3DN,GLUModel,MyResNet34,HourglassW
-from modules.keypoint_detector import KPDetector
-from modules.util import make_coordinate_grid,gaussian2kp
+from modules.util import Hourglass3D
+
+from modules.util import gaussian2kp
 from sync_batchnorm import SynchronizedBatchNorm2d as BatchNorm2d
 
 
