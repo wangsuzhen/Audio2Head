@@ -14,6 +14,8 @@ from modules.keypoint_detector import KPDetector
 from modules.audio2kp import AudioModel3D
 import yaml,os,imageio
 
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
 def draw_annotation_box( image, rotation_vector, translation_vector, color=(255, 255, 255), line_width=2):
     """Draw a 3D box as annotation of pose"""
 
@@ -130,26 +132,26 @@ def audio2head(audio_path, img_path, model_path, save_path):
 
     img = np.array(img_as_float32(img))
     img = img.transpose((2, 0, 1))
-    img = torch.from_numpy(img).unsqueeze(0).cuda()
+    img = torch.from_numpy(img).unsqueeze(0).to(device)
 
 
     ref_pose_rot, ref_pose_trans = get_pose_from_audio(img, audio_feature, model_path)
-    torch.cuda.empty_cache()
+    # torch.cuda.empty_cache()
 
     config_file = r"./config/vox-256.yaml"
     with open(config_file) as f:
-        config = yaml.load(f)
+        config = yaml.safe_load(f)
     kp_detector = KPDetector(**config['model_params']['kp_detector_params'],
                              **config['model_params']['common_params'])
     generator = OcclusionAwareGenerator(**config['model_params']['generator_params'],
                                         **config['model_params']['common_params'])
-    kp_detector = kp_detector.cuda()
-    generator = generator.cuda()
+    kp_detector = kp_detector.to(device)
+    generator = generator.to(device)
 
-    opt = argparse.Namespace(**yaml.load(open("./config/parameters.yaml")))
-    audio2kp = AudioModel3D(opt).cuda()
+    opt = argparse.Namespace(**yaml.safe_load(open("./config/parameters.yaml")))
+    audio2kp = AudioModel3D(opt).to(device)
 
-    checkpoint  = torch.load(model_path)
+    checkpoint  = torch.load(model_path, map_location=device)
     kp_detector.load_state_dict(checkpoint["kp_detector"])
     generator.load_state_dict(checkpoint["generator"])
     audio2kp.load_state_dict(checkpoint["audio2kp"])
@@ -190,8 +192,8 @@ def audio2head(audio_path, img_path, model_path, save_path):
     for bs_idx in range(bs):
         t = {}
 
-        t["audio"] = audio_f[:, bs_idx].cuda()
-        t["pose"] = poses[:, bs_idx].cuda()
+        t["audio"] = audio_f[:, bs_idx].to(device)
+        t["pose"] = poses[:, bs_idx].to(device)
         t["id_img"] = img
         kp_gen_source = kp_detector(img)
 
