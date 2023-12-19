@@ -40,7 +40,7 @@ def draw_annotation_box( image, rotation_vector, translation_vector, color=(255,
     point_3d.append((front_size, front_size, front_depth))
     point_3d.append((front_size, -front_size, front_depth))
     point_3d.append((-front_size, -front_size, front_depth))
-    point_3d = np.array(point_3d, dtype=np.float).reshape(-1, 3)
+    point_3d = np.array(point_3d, dtype=float).reshape(-1, 3)
 
     # Map to 2d image points
     (point_2d, _) = cv2.projectPoints(point_3d,
@@ -138,7 +138,7 @@ def audio2head(audio_path, img_path, model_path, save_path):
 
     config_file = r"./config/vox-256.yaml"
     with open(config_file) as f:
-        config = yaml.load(f)
+        config = yaml.safe_load(f)
     kp_detector = KPDetector(**config['model_params']['kp_detector_params'],
                              **config['model_params']['common_params'])
     generator = OcclusionAwareGenerator(**config['model_params']['generator_params'],
@@ -146,7 +146,7 @@ def audio2head(audio_path, img_path, model_path, save_path):
     kp_detector = kp_detector.cuda()
     generator = generator.cuda()
 
-    opt = argparse.Namespace(**yaml.load(open("./config/parameters.yaml")))
+    opt = argparse.Namespace(**yaml.safe_load(open("./config/parameters.yaml")))
     audio2kp = AudioModel3D(opt).cuda()
 
     checkpoint  = torch.load(model_path)
